@@ -10,10 +10,11 @@ const {
 } = require("../controllers/product.controller");
 
 const router = express.Router();
-
+router.get("/count", getProductsCount);
 router.get("/", getProducts);
+router.post("/", createProduct);
 router.get("/:id", getProductById);
 router.delete("/:id", deleteProduct);
-router.post("/", createProduct);
 router.put("/:id", updateProduct);
+
 module.exports = router;

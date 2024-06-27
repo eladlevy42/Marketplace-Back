@@ -3,12 +3,8 @@ const Product = require("../models/products.model");
 const { raw } = require("express");
 
 async function getProductsCount(req, res) {
-  const name = req.query.name || "";
-
   try {
-    const count = await Product.countDocuments({
-      name: { $regex: name, $options: "i" }, // "i" for case-insensitive
-    });
+    const count = await Product.countDocuments();
     res.json({ count });
   } catch (err) {
     console.log(
@@ -18,42 +14,54 @@ async function getProductsCount(req, res) {
     res.status(500).json({ message: err.message });
   }
 }
-function criteria(req) {
-  const name = req.params.name || "";
-  const page = req.query.page || 1;
-  const minPrice = parseFloat(req.query.minPrice) || 0;
-  const maxPrice = parseFloat(req.query.maxPrice) || Infinity;
-  return {
-    page,
-    name: {
-      $regex: name,
-      $options: "i",
-    },
-    price: {
-      $gte: minPrice,
-      $lte: maxPrice,
-    },
-  };
+function capitalize(str) {
+  if (typeof str !== "string") {
+    return "";
+  }
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+function _makeCriteria(query) {
+  const { name, min, max, category } = query;
+  const criteria = {};
+  if (name) {
+    criteria.name = { $regex: new RegExp(name, "i") }; // 'i' flag for case-insensitive
+  }
+
+  if (min) {
+    criteria.price = { ...criteria.price, $gte: min };
+  }
+
+  if (max) {
+    criteria.price = { ...criteria.price, $lte: max };
+  }
+
+  if (category) {
+    const categories = category.split(",");
+    const validateCategorie = categories.map((category) => {
+      return capitalize(category.trim());
+    });
+    criteria.category = { $in: validateCategorie };
+  }
+  return criteria;
 }
 async function getProducts(req, res) {
-  const criteriaObj = criteria(req);
-
+  const { query } = req;
+  const criteriaObj = _makeCriteria(query);
+  let page = parseInt(query.page) || 1;
+  if (page < 1) {
+    page = 1;
+  }
+  console.log(criteriaObj);
   try {
-    const products = await Product.find({
-      name: criteriaObj.name,
-      price: criteriaObj.price,
-    })
-      .skip(criteriaObj.page * 10)
-      .limit(10);
+    const products = await Product.find(criteriaObj)
+      .skip((page - 1) * 9)
+      .limit(9);
+    console.log(products);
     res.json(products);
   } catch (err) {
-    console.log(
-      "product.controller.getProducts error while getiing products: " +
-        err.message
-    );
+    res.status(500).json({ message: err.message });
   }
 }
-
 async function getProductById(req, res) {
   const { id } = req.params;
   try {
