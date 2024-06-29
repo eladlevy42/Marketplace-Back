@@ -1,4 +1,3 @@
-// config/db.js
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 
@@ -6,7 +5,10 @@ dotenv.config(); // Load env vars
 
 async function connectDB() {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
     console.log("MongoDB connected");
   } catch (err) {
     console.error(err.message);
@@ -14,5 +16,4 @@ async function connectDB() {
   }
 }
 
-// Export the function
 module.exports = connectDB;

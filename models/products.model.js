@@ -24,6 +24,6 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
+const productDb = mongoose.connection.useDb("products"); // Replace 'productsDatabase' with your actual database name
 const Product = mongoose.model("Product", productSchema);
 module.exports = Product;
