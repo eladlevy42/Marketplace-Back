@@ -1,4 +1,4 @@
-const Product = require("../models/products.model");
+const Product = require("../models/product.model");
 // const PRODUCTS = require("../data/products.json");
 const { raw } = require("express");
 
@@ -47,16 +47,17 @@ function _makeCriteria(query) {
 async function getProducts(req, res) {
   const { query } = req;
   const criteriaObj = _makeCriteria(query);
+
   let page = parseInt(query.page) || 1;
   if (page < 1) {
     page = 1;
   }
-  console.log(criteriaObj);
+
   try {
     const products = await Product.find(criteriaObj)
       .skip((page - 1) * 9)
       .limit(9);
-    console.log(products);
+
     res.json(products);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -103,7 +104,7 @@ async function deleteProduct(req, res) {
 
 async function createProduct(req, res) {
   const productToAdd = req.body;
-  console.log(productToAdd);
+
   const newProduct = new Product(productToAdd);
 
   try {
